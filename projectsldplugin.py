@@ -32,8 +32,10 @@ import os
 from xml.dom.minidom import parse, parseString
 
 import config
+import requests
+from requests.auth import HTTPBasicAuth
 
-# http://localhost/cgi-bin/mapserv?map=/usr/lib/cgi-bin/nl.map&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&BBOX=-15772.44905833539087325,339281.98529863281873986,335233.03839986532693729,606016.84424390434287488&CRS=EPSG:28992&WIDTH=479&HEIGHT=364&LAYERS=provincies,autowegen,plaatsen&STYLES=&FORMAT=image/png&SLD=http://localhost/kaas.sld
+#http://localhost/cgi-bin/mapserv?map=/usr/lib/cgi-bin/b3p.map&&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&BBOX=4386.87996086938073859,304945.87847349571529776,286086.88017670798581094,621081.30985224642790854&CRS=EPSG:28992&WIDTH=388&HEIGHT=435&LAYERS=provincies,autowegen,plaatsen&STYLES=&FORMAT=image/png&TRANSPARENT=TRUE&sld=http://localhost/b3p.sld
 
 class ProjectSldPlugin:
 
@@ -53,8 +55,13 @@ class ProjectSldPlugin:
             if qVersion() > '4.3.3':
                 QCoreApplication.installTranslator(self.translator)
 
+        self.SETTINGS_SECTION = '/projectsldplugin/'
+        self.filename = self.getSettingsValue('lastfile')
+
         # Create the dialog (after translation) and keep reference
         self.dlg = ProjectSldPluginDialog()
+        self.dlg.ui.cbx_save_as_file.toggled.connect(self.saveAsFileToggled)
+        self.dlg.ui.btn_filename.clicked.connect(self.filenameButtonClicked)
 
     def initGui(self):
         # Create action that will start plugin configuration
@@ -75,43 +82,69 @@ class ProjectSldPlugin:
 
     # run method that performs all the real work
     def run(self):
+        self.dlg.ui.le_workspace.setText(self.getSettingsValue('default-workspace'))
+        self.dlg.ui.le_post_url.setText(config.params['post-url'])
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop
         result = self.dlg.exec_()
         # See if OK was pressed
         if result == 1:
-            # TODO: check IF there are any vector layers here!!!
             self.createProjectSld()
 
     def debug(self, string):
         print "###### DEBUG"
         print string
 
-    def createProjectSld(self):
+    def saveAsFileToggled(self):
+        checked = self.dlg.ui.cbx_save_as_file.isChecked()
+        # disable or enable the inputs
+        self.dlg.ui.lbl_filename.setEnabled(checked)
+        self.dlg.ui.le_filename.setEnabled(checked)
+        self.dlg.ui.btn_filename.setEnabled(checked)
+        if checked:
+            self.dlg.ui.le_filename.setText(self.getSettingsValue('lastfile'))
+        else:
+            self.dlg.ui.le_filename.setText('')
 
-        filename = "."
-        if QSettings().contains("/projectsldplugin/lastfile"):
-            if QGis.QGIS_VERSION_INT < 10900:
-                # qgis <= 1.8
-                filename = unicode(QSettings().value('/projectsldplugin/lastfile').toString())
+    def getSettingsValue(self, key):
+        if QSettings().contains(self.SETTINGS_SECTION + key):
+            key = self.SETTINGS_SECTION + key
+            if QGis.QGIS_VERSION_INT < 10900: # qgis <= 1.8
+                return unicode(QSettings().value(key).toString())
             else:
-                filename = unicode(QSettings().value('/projectsldplugin/lastfile'))
-        (filename, filter) = QFileDialog.getSaveFileNameAndFilter(self.iface.mainWindow(),
-                    "SLD bestand opslaan als...",
-                    os.path.realpath(filename),
-                    "sld files (*.sld)")
-        fn, fileextension = os.path.splitext(unicode(filename))
+                return unicode(QSettings().value(key))
+        elif config.params.has_key(key):
+            return config.params[key]
+        else:
+            return u''
+    def setSettingsValue(self, key, value):
+        key = self.SETTINGS_SECTION + key
+        QSettings().setValue(key, value)
+
+    def filenameButtonClicked(self):
+        (self.filename, filter) = QFileDialog.getSaveFileNameAndFilter(
+            self.iface.mainWindow(),
+            "SLD bestand opslaan als...",
+            os.path.realpath(self.filename),
+            "sld files (*.sld)")
+        fn, fileextension = os.path.splitext(unicode(self.filename))
         if len(fn) == 0: # user choose cancel
             return
         #if fileextension != '.sld':
-        #    filename = fn + '.sld'
+        #    self.filename = fn + '.sld'
         # save this filename in settings for later
-        QSettings().setValue('/projectsldplugin/lastfile', filename)
-        file = open(filename, "w")
+        self.dlg.ui.le_filename.setText(self.filename)
 
+    def createProjectSld(self):
+        if self.dlg.ui.cbx_save_as_file.isChecked() == False:
+            file = QTemporaryFile(QDir.tempPath()+os.sep+'qgis_XXXXXX.sld')
+            file.open()
+            self.filename = file.fileName()
+        else:
+            # TODO: check for empty filename?
+            file = open(self.filename, "w")
         resultdom = None
-
         # holding the QTemporaryFile handles here, just to be sure they are not
         # removed while working on the layerlist
         layerslds = []
@@ -138,36 +171,51 @@ class ProjectSldPlugin:
 
             # append both fname AND temporary file object (to prevent it being removed)
             layerslds.append((fname, f))
-        # create the sld wrapper tail
-        #print layerslds
-        #for filename, sldfile in layerslds:
-        #    #print filename
-        #    dom = parse(sldfile)
-        #    # todo check length
-        #    namedLayer = dom.getElementsByTagName('NamedLayer')[0]
-        #    print namedLayer.toxml() # unicode
 
-        #print resultdom.toxml()
-        # toprettyxml looked better, but has an awfull lot of whitespace, 
-        # see: http://ronrothman.com/public/leftbraned/xml-dom-minidom-toprettyxml-and-silly-whitespace/
-        #xml = resultdom.toprettyxml()
         if resultdom == None:
             self.iface.messageBar().pushMessage("Warning", "Geen sld bestand aangemaakt. Zijn er wel vector lagen aanwezig?", level=QgsMessageBar.WARNING, duration=510)
             return
+
+        #print resultdom.toxml()
+        # toprettyxml looks better, but has an awfull lot of whitespace, 
+        # see: http://ronrothman.com/public/leftbraned/xml-dom-minidom-toprettyxml-and-silly-whitespace/
+        #xml = resultdom.toprettyxml()
         xml = resultdom.toxml()
 
-
-        #van = '<se:WellKnownName>x</se:WellKnownName>'
-        #naar = '<se:WellKnownName>shape://times</se:WellKnownName>'
-        #xml = xml.replace(van, naar)
-
-        for keyvalue in config.replace:
-            xml = xml.replace(keyvalue[0], keyvalue[1])
-
+        # now replace all replacements from config
+        for key in config.replace:
+            xml = xml.replace(key, config.replace[key])
         file.write(xml)
         file.close()
 
-        self.iface.messageBar().pushMessage("Info", "Succes: "+filename, level=QgsMessageBar.INFO, duration=5)
+        # only remember if checked and succesfull
+        if self.dlg.ui.cbx_save_as_file.isChecked():
+            self.setSettingsValue('lastfile', self.filename)
+            self.iface.messageBar().pushMessage("Info", "Sld succesvol opgeslagen... ", level=QgsMessageBar.INFO, duration=2)
+
+        if self.dlg.ui.cbx_post_to_server.isChecked():
+            self.post_sld()
+
+    def post_sld(self):
+        url = 'http://192.168.1.19:8084/kaartenbalie/api/foo'
+        files = {'file': open(self.filename, 'rb')}
+        workspace = self.dlg.ui.le_workspace.text()
+        workspacekey = config.params['post-workspace-param']
+        username = config.params['post-username']
+        password = config.params['post-password']
+        r = requests.post(url,
+            data={workspacekey:workspace},
+            files=files,
+            auth=HTTPBasicAuth(username, password))
+        print r.status_code
+        if r.status_code == 200:
+            self.iface.messageBar().pushMessage("Info", "Sld succesvol verstuurd... ", level=QgsMessageBar.INFO, duration=2)
+        else:
+            self.iface.messageBar().pushMessage("Fout", 
+                "Probleem bij het versturen van de sld: "+
+                unicode(r.status_code), level=QgsMessageBar.CRITICAL, duration=5)
+        print r.text
+
 
     def addFillElement2GraphicMark(self, dom):
         marks = dom.getElementsByTagName('se:Mark')
