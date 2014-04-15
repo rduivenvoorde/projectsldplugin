@@ -1,5 +1,11 @@
 
 replace = {
+    '.svg':'.png',
+    # windows
+    'file://':'http://localhost',
+    # linux
+    #'xlink:href="':'xlink:href="http://localhost/',
+    '<se:Format>image/svg+xml</se:Format>':'<se:Format>image/png</se:Format>',
     '<se:WellKnownName>x</se:WellKnownName>':'<se:WellKnownName>shape://times</se:WellKnownName>',
     '<se:WellKnownName>cross</se:WellKnownName>':'<se:WellKnownName>shape://plus</se:WellKnownName>',
     '<se:WellKnownName>line</se:WellKnownName>':'<se:WellKnownName>shape://vertline</se:WellKnownName>',
@@ -14,5 +20,7 @@ params = {
     'post-password':'geheim',
     'post-workspace-param':'workspace',
     'default-workspace':'b3p',
-    'sld-url':'http://example.org/gemeente/sld'
+    'sld-url':'http://example.org/gemeente/sld',
+    'stroke-width-multiplier':3,
+    'point-size-multiplier':8
 }

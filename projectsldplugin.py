@@ -51,7 +51,6 @@ class ProjectSldPlugin:
         if os.path.exists(localePath):
             self.translator = QTranslator()
             self.translator.load(localePath)
-
             if qVersion() > '4.3.3':
                 QCoreApplication.installTranslator(self.translator)
 
@@ -61,6 +60,7 @@ class ProjectSldPlugin:
         # Create the dialog (after translation) and keep reference
         self.dlg = ProjectSldPluginDialog()
         self.dlg.ui.cbx_save_as_file.toggled.connect(self.saveAsFileToggled)
+        self.dlg.ui.cbx_post_to_server.toggled.connect(self.postToServerToggled)
         self.dlg.ui.btn_filename.clicked.connect(self.filenameButtonClicked)
 
     def initGui(self):
@@ -95,6 +95,11 @@ class ProjectSldPlugin:
     def debug(self, string):
         print "###### DEBUG"
         print string
+
+    def postToServerToggled(self):
+        checked = self.dlg.ui.cbx_post_to_server.isChecked()
+        self.dlg.ui.lbl_workspace.setEnabled(checked)
+        self.dlg.ui.le_workspace.setEnabled(checked)
 
     def saveAsFileToggled(self):
         checked = self.dlg.ui.cbx_save_as_file.isChecked()
@@ -142,7 +147,6 @@ class ProjectSldPlugin:
             file.open()
             self.filename = file.fileName()
         else:
-            # TODO: check for empty filename?
             file = open(self.filename, "w")
         resultdom = None
         # holding the QTemporaryFile handles here, just to be sure they are not
@@ -161,13 +165,12 @@ class ProjectSldPlugin:
             layer.saveSldStyle(fname)
             if resultdom == None:
                 resultdom = parse(fname) # is now holding a DOM of the first sld
-                self.addFillElement2GraphicMark(resultdom)
+                self.addFillElementToGraphicMark(resultdom)
             else:
                 layer_dom = parse(fname)
                 namedlayer = layer_dom.getElementsByTagName('NamedLayer')[0]
-                self.addFillElement2GraphicMark(namedlayer)
+                self.addFillElementToGraphicMark(namedlayer)
                 resultdom.getElementsByTagName('StyledLayerDescriptor')[0].appendChild(namedlayer)
-
 
             # append both fname AND temporary file object (to prevent it being removed)
             layerslds.append((fname, f))
@@ -175,6 +178,11 @@ class ProjectSldPlugin:
         if resultdom == None:
             self.iface.messageBar().pushMessage("Warning", "Geen sld bestand aangemaakt. Zijn er wel vector lagen aanwezig?", level=QgsMessageBar.WARNING, duration=510)
             return
+
+        # multiplier for stroke width in sld
+        self.multiplyStrokeWidth(resultdom)
+        # multiplier for point size symbols
+        self.multipyPointSize(resultdom)
 
         #print resultdom.toxml()
         # toprettyxml looks better, but has an awfull lot of whitespace, 
@@ -201,6 +209,7 @@ class ProjectSldPlugin:
         files = {'file': open(self.filename, 'rb')}
         workspace = self.dlg.ui.le_workspace.text()
         workspacekey = config.params['post-workspace-param']
+        self.setSettingsValue('default-workspace', workspace)
         username = config.params['post-username']
         password = config.params['post-password']
         r = requests.post(url,
@@ -214,10 +223,28 @@ class ProjectSldPlugin:
             self.iface.messageBar().pushMessage("Fout", 
                 "Probleem bij het versturen van de sld: "+
                 unicode(r.status_code), level=QgsMessageBar.CRITICAL, duration=5)
-        print r.text
 
+    # <se:SvgParameter name="stroke-width">2</se:SvgParameter>
+    def multiplyStrokeWidth(self, dom):
+        strokeWidthMultiplier = float(config.params['stroke-width-multiplier'])
+        svgparams = dom.getElementsByTagName('se:SvgParameter')
+        if len(svgparams)>0:
+            for svgparam in svgparams:
+                if svgparam.getAttribute('name')=='stroke-width':
+                    width = float(svgparam.childNodes[0].nodeValue)
+                    svgparam.childNodes[0].nodeValue=width*strokeWidthMultiplier
 
-    def addFillElement2GraphicMark(self, dom):
+    # <se:PointSymbolizer>..<se:Size>2</se:Size>
+    def multipyPointSize(self, dom):
+        pointSizeMultiplier = float(config.params['point-size-multiplier'])
+        pointsyms = dom.getElementsByTagName('se:PointSymbolizer')
+        if len(pointsyms)>0:
+            for pointsym in pointsyms:
+                size = float(self.childNodeValue(pointsym, 'se:Size'))
+                sizeElement = pointsym.getElementsByTagName('se:Size')
+                sizeElement[0].childNodes[0].nodeValue=size*pointSizeMultiplier
+
+    def addFillElementToGraphicMark(self, dom):
         marks = dom.getElementsByTagName('se:Mark')
         if len(marks)>0:
             for mark in marks:

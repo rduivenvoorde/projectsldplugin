@@ -81,14 +81,14 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="1">
-    <widget class="QLabel" name="label_2">
+   <item row="4" column="1">
+    <widget class="QLabel" name="lbl_workspace">
      <property name="text">
       <string>Workspace</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="2" colspan="3">
+   <item row="4" column="2" colspan="3">
     <widget class="QLineEdit" name="le_workspace">
      <property name="text">
       <string/>

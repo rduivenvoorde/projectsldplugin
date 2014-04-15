@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_projectsldplugin.ui'
 #
-# Created: Tue Apr 15 14:04:38 2014
+# Created: Tue Apr 15 17:06:51 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -59,13 +59,13 @@ class Ui_ProjectSldPlugin(object):
         self.cbx_post_to_server.setChecked(True)
         self.cbx_post_to_server.setObjectName(_fromUtf8("cbx_post_to_server"))
         self.gridLayout.addWidget(self.cbx_post_to_server, 3, 1, 1, 1)
-        self.label_2 = QtGui.QLabel(ProjectSldPlugin)
-        self.label_2.setObjectName(_fromUtf8("label_2"))
-        self.gridLayout.addWidget(self.label_2, 2, 1, 1, 1)
+        self.lbl_workspace = QtGui.QLabel(ProjectSldPlugin)
+        self.lbl_workspace.setObjectName(_fromUtf8("lbl_workspace"))
+        self.gridLayout.addWidget(self.lbl_workspace, 4, 1, 1, 1)
         self.le_workspace = QtGui.QLineEdit(ProjectSldPlugin)
         self.le_workspace.setText(_fromUtf8(""))
         self.le_workspace.setObjectName(_fromUtf8("le_workspace"))
-        self.gridLayout.addWidget(self.le_workspace, 2, 2, 1, 3)
+        self.gridLayout.addWidget(self.le_workspace, 4, 2, 1, 3)
 
         self.retranslateUi(ProjectSldPlugin)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), ProjectSldPlugin.accept)
@@ -78,5 +78,5 @@ class Ui_ProjectSldPlugin(object):
         self.cbx_save_as_file.setText(_translate("ProjectSldPlugin", "Opslaan als bestand", None))
         self.btn_filename.setText(_translate("ProjectSldPlugin", "Browse", None))
         self.cbx_post_to_server.setText(_translate("ProjectSldPlugin", "POST naar server", None))
-        self.label_2.setText(_translate("ProjectSldPlugin", "Workspace", None))
+        self.lbl_workspace.setText(_translate("ProjectSldPlugin", "Workspace", None))
 

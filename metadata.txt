@@ -12,7 +12,7 @@
 name=projectsldplugin
 qgisMinimumVersion=2.0
 description=Merges the sld for all layers in a project to one sld file.
-version=0.1
+version=0.2
 author=B3Partners
 email=info@b3p.nl
 
