@@ -151,6 +151,9 @@ class ProjectSldPlugin:
         # toprettyxml looked better, but has an awfull lot of whitespace, 
         # see: http://ronrothman.com/public/leftbraned/xml-dom-minidom-toprettyxml-and-silly-whitespace/
         #xml = resultdom.toprettyxml()
+        if resultdom == None:
+            self.iface.messageBar().pushMessage("Warning", "Geen sld bestand aangemaakt. Zijn er wel vector lagen aanwezig?", level=QgsMessageBar.WARNING, duration=510)
+            return
         xml = resultdom.toxml()
 
 
