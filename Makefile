@@ -33,9 +33,9 @@ TRANSLATIONS =
 
 PLUGINNAME = projectsldplugin
 
-PY_FILES = projectsldplugin.py projectsldplugindialog.py __init__.py
+PY_FILES = projectsldplugin.py projectsldplugindialog.py __init__.py config.py
 
-EXTRAS = icon.png metadata.txt
+EXTRAS = icon.png metadata.txt ext-libs
 
 UI_FILES = ui_projectsldplugin.py
 
@@ -64,7 +64,7 @@ deploy: compile doc transcompile
 	cp -vf $(PY_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vf $(UI_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vf $(RESOURCE_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(EXTRAS) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
+	cp -vfr $(EXTRAS) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vfr i18n $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vfr $(HELP) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/help
 
