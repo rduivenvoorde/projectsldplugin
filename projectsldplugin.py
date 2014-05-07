@@ -227,6 +227,10 @@ class ProjectSldPlugin:
                 auth=HTTPBasicAuth(username, password))
             if r.status_code == 200:
                 self.iface.messageBar().pushMessage("Info", "Sld succesvol verstuurd... ", level=QgsMessageBar.INFO, duration=2)
+                sldurl = r.text
+                QMessageBox.information(self.iface.mainWindow(), "Sld", 
+                    ("Gebruik onderstaande url in Kaartenbalie:\n\n" + sldurl +
+                    "\n"), QMessageBox.Ok, QMessageBox.Ok)
             else:
                 self.iface.messageBar().pushMessage("Fout", 
                     "Probleem bij het versturen van de sld: "+
