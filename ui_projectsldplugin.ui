@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Project Sld Plugin</string>
+   <string>SLD Export</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="7" column="3" colspan="2">

@@ -70,7 +70,7 @@ class ProjectSldPlugin:
         # Create action that will start plugin configuration
         self.action = QAction(
             QIcon(":/plugins/projectsldplugin/icon.png"),
-            u"Project SLD plugin", self.iface.mainWindow())
+            u"SLD export", self.iface.mainWindow())
         # connect the action to the run method
         self.action.triggered.connect(self.run)
 

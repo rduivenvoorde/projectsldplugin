@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_projectsldplugin.ui'
 #
-# Created: Wed May  7 14:01:06 2014
+# Created: Wed May  7 17:28:07 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -73,7 +73,7 @@ class Ui_ProjectSldPlugin(object):
         QtCore.QMetaObject.connectSlotsByName(ProjectSldPlugin)
 
     def retranslateUi(self, ProjectSldPlugin):
-        ProjectSldPlugin.setWindowTitle(_translate("ProjectSldPlugin", "Project Sld Plugin", None))
+        ProjectSldPlugin.setWindowTitle(_translate("ProjectSldPlugin", "SLD Export", None))
         self.lbl_filename.setText(_translate("ProjectSldPlugin", "Bestand", None))
         self.cbx_save_as_file.setText(_translate("ProjectSldPlugin", "Opslaan als bestand", None))
         self.btn_filename.setText(_translate("ProjectSldPlugin", "Browse", None))
