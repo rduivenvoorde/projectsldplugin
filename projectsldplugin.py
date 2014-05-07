@@ -212,17 +212,23 @@ class ProjectSldPlugin:
         self.setSettingsValue('default-workspace', workspace)
         username = config.params['post-username']
         password = config.params['post-password']
-        r = requests.post(url,
-            data={workspacekey:workspace},
-            files=files,
-            auth=HTTPBasicAuth(username, password))
-        print r.status_code
-        if r.status_code == 200:
-            self.iface.messageBar().pushMessage("Info", "Sld succesvol verstuurd... ", level=QgsMessageBar.INFO, duration=2)
-        else:
+        try:
+            r = requests.post(url,
+                timeout=10,
+                data={workspacekey:workspace},
+                files=files,
+                auth=HTTPBasicAuth(username, password))
+            if r.status_code == 200:
+                self.iface.messageBar().pushMessage("Info", "Sld succesvol verstuurd... ", level=QgsMessageBar.INFO, duration=2)
+            else:
+                self.iface.messageBar().pushMessage("Fout", 
+                    "Probleem bij het versturen van de sld: "+
+                    unicode(r.status_code), level=QgsMessageBar.CRITICAL, duration=5)
+        except requests.exceptions.Timeout:
             self.iface.messageBar().pushMessage("Fout", 
-                "Probleem bij het versturen van de sld: "+
-                unicode(r.status_code), level=QgsMessageBar.CRITICAL, duration=5)
+                "Timout bij posten naar: "+
+                unicode(url) + ". Is de url wel juist?", level=QgsMessageBar.CRITICAL, duration=5)
+
 
     # <se:SvgParameter name="stroke-width">2</se:SvgParameter>
     def multiplyStrokeWidth(self, dom):
