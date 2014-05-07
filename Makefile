@@ -1,7 +1,8 @@
 #/***************************************************************************
 # ProjectSldPlugin
 # 
-# Merges the sld for all layers in a project to one sld file.
+# Create one combined SLD file for all layers in the current project. Save
+# the file locally or publish it to B3P Kaartenbalie or Geoserver.
 #                             -------------------
 #        begin                : 2013-11-25
 #        copyright            : (C) 2013 by B3Partners

@@ -2,8 +2,11 @@
 """
 /***************************************************************************
  ProjectSldPlugin
-                                 A QGIS plugin
- Merges the sld for all layers in a project to one sld file.
+                                 SLD Export
+
+ Create one combined SLD file for all layers in the current project. Save
+ the file locally or publish it to B3P Kaartenbalie or Geoserver.
+
                               -------------------
         begin                : 2013-11-25
         copyright            : (C) 2013 by B3Partners
@@ -73,11 +76,11 @@ class ProjectSldPlugin:
 
         # Add toolbar button and menu item
         self.iface.addToolBarIcon(self.action)
-        self.iface.addPluginToMenu(u"&projectsldplugin", self.action)
+        self.iface.addPluginToMenu(u"SLD export", self.action)
 
     def unload(self):
         # Remove the plugin menu item and icon
-        self.iface.removePluginMenu(u"&projectsldplugin", self.action)
+        self.iface.removePluginMenu(u"SLD export", self.action)
         self.iface.removeToolBarIcon(self.action)
 
     # run method that performs all the real work
