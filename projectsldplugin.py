@@ -205,7 +205,7 @@ class ProjectSldPlugin:
             self.post_sld()
 
     def post_sld(self):
-        url = 'http://192.168.1.19:8084/kaartenbalie/api/foo'
+        url = config.params['post-url']
         files = {'file': open(self.filename, 'rb')}
         workspace = self.dlg.ui.le_workspace.text()
         workspacekey = config.params['post-workspace-param']
