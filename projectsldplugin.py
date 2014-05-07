@@ -147,7 +147,14 @@ class ProjectSldPlugin:
             file.open()
             self.filename = file.fileName()
         else:
-            file = open(self.filename, "w")
+            try:
+                file = open(self.filename, "w")
+            except:
+                self.iface.messageBar().pushMessage('Fout', 
+                    'Kan het bestand "'+
+                    unicode(self.filename) + '" niet opslaan. Is dit een geldige bestandsnaam en schrijfbaar?', level=QgsMessageBar.CRITICAL, duration=5)
+                return
+
         resultdom = None
         # holding the QTemporaryFile handles here, just to be sure they are not
         # removed while working on the layerlist
@@ -199,7 +206,7 @@ class ProjectSldPlugin:
         # only remember if checked and succesfull
         if self.dlg.ui.cbx_save_as_file.isChecked():
             self.setSettingsValue('lastfile', self.filename)
-            self.iface.messageBar().pushMessage("Info", "Sld succesvol opgeslagen... ", level=QgsMessageBar.INFO, duration=2)
+            self.iface.messageBar().pushMessage("Info", "Sld succesvol opgeslagen als: "+unicode(self.filename), level=QgsMessageBar.INFO, duration=2)
 
         if self.dlg.ui.cbx_post_to_server.isChecked():
             self.post_sld()
